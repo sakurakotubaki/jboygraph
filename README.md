@@ -1,39 +1,146 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+## Using JboyGraph
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages).
+Use animated pie charts.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages).
--->
-
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
-
-## Features
-
-TODO: List what your package can do. Maybe include images, gifs, or videos.
-
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
-
-## Usage
-
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
-
+source code:
 ```dart
-const like = 'sample';
+// lib/health_circle_graph/health_circle_graph.dart
+
+import 'dart:math';
+import 'package:flutter/material.dart';
+
+class HealthCircleGraph extends StatelessWidget {
+  final double healthValue;
+  final Color linePercentColor;
+
+  const HealthCircleGraph({
+    super.key,
+     required this.healthValue,
+     required this.linePercentColor,
+     });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        TweenAnimationBuilder(
+          tween: Tween<double>(begin: 0, end: 2 * pi * (healthValue / 50)),
+          duration: Duration(seconds: 5),
+          builder: (BuildContext context, double angle, Widget? child) {
+            return CustomPaint(
+              size: Size(200, 200),
+              painter: CirclePainter(
+                angle: angle,
+                lineChildColor: linePercentColor,
+              ),
+            );
+          },
+        ),
+        Text(
+          '${healthValue.toInt()}',
+          style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
+}
+
+class CirclePainter extends CustomPainter {
+  final double angle;
+  final Color lineChildColor;
+
+  CirclePainter({
+    required this.angle,
+    required this.lineChildColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final outlinePaint = Paint()
+      ..color = Colors.grey[300]!
+      ..strokeWidth = 10
+      ..style = PaintingStyle.stroke;
+
+    final fillPaint = Paint()
+      ..color = lineChildColor
+      ..strokeWidth = 10
+      ..style = PaintingStyle.stroke;
+
+    canvas.drawArc(
+      Rect.fromCenter(
+        center: Offset(size.width / 2, size.height / 2),
+        width: size.width,
+        height: size.height,
+      ),
+      0,
+      2 * pi,
+      false,
+      outlinePaint,
+    );
+
+    canvas.drawArc(
+      Rect.fromCenter(
+        center: Offset(size.width / 2, size.height / 2),
+        width: size.width,
+        height: size.height,
+      ),
+      -pi / 2,
+      angle,
+      false,
+      fillPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(CirclePainter oldDelegate) => oldDelegate.angle != angle;
+}
 ```
 
-## Additional information
+Import the library classes and pass values ​​to the constructor.
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+```dart
+import 'package:flutter/material.dart';
+import 'package:jboygraph/health_circle_graph.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+      ),
+      home: const HealthCircleGraphExample(),
+    );
+  }
+}
+
+class HealthCircleGraphExample extends StatelessWidget {
+  const HealthCircleGraphExample({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    /// Variables to pass values ​​to the constructor
+    /// [Passing a Number]
+    var healthValue = 75.0;
+    /// Pass Color
+    Color linePercentColor = Colors.green;
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Health Circle Graph Example'),
+      ),
+      body: Center(
+        child: HealthCircleGraph(healthValue: healthValue, linePercentColor: linePercentColor),
+      ),
+    );
+  }
+}
+```

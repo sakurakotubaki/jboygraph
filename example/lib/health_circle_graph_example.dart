@@ -26,7 +26,10 @@ class HealthCircleGraphExample extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    /// Variables to pass values ​​to the constructor
+    /// [Passing a Number]
     var healthValue = 75.0;
+    /// Pass Color
     Color linePercentColor = Colors.green;
     return Scaffold(
       appBar: AppBar(
