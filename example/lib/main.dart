@@ -1,74 +1,83 @@
 import 'package:flutter/material.dart';
-import 'package:jboygraph/line_chart.dart';
+
 void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
-  const MyApp({
-    super.key,
-  });
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: LineChartExample(),
-    );
-  }
-}
-
-class LineChartExample extends StatelessWidget {
-  const LineChartExample({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    // グラフのデータポイント
-    final points = [
-      // Listに代入して良い値の数は、最大で、7個まで
-      Offset(0, 0),
-      Offset(50, 100),
-      Offset(100, 150),
-      Offset(150, 100),
-      Offset(200, 150),
-      Offset(250, 100),
-      Offset(300, 150),
-    ];
-
-    return Scaffold(
-      body: Center(
-        child: CustomPaint(
-          size: Size(300, 200),
-          painter: LineChart(points: points),
+      home: Scaffold(
+        body: Center(
+          child: BarChartAnimated(),
         ),
       ),
     );
   }
 }
 
-// List<Offset> generatePoints(int count, Size size) {
-//   List<Offset> points = [];
-//   final double maxX = size.width - 50.0; // 右のマージンを考慮
-//   final double maxY = size.height - 50.0; // 下のマージンを考慮
-//   final double intervalX = maxX / (count - 1); // X座標の間隔を計算
+class BarChartAnimated extends StatefulWidget {
+  const BarChartAnimated({super.key});
 
-//   for (int i = 0; i < count; i++) {
-//     final x = intervalX * i; // X座標は等間隔に調整
-//     final y = (i % 2 == 0) ? maxY * 0.5 : maxY * 0.75; // Y座標は枠内に収まるように調整
-//     points.add(Offset(x, y));
-//   }
-//   return points;
-// }
+  @override
+  _BarChartAnimatedState createState() => _BarChartAnimatedState();
+}
 
-// class LineChartExample extends StatelessWidget {
-//   const LineChartExample({super.key});
+class _BarChartAnimatedState extends State<BarChartAnimated> with TickerProviderStateMixin {
+  final List<AnimationController> _controllers = [];
+  final List<Animation<double>> _animations = [];
+  final List<Color> _colors = [Colors.red, Colors.green, Colors.blue, Colors.orange, Colors.purple];
+  final List<double> _values = [160.0, 120.0, 140.0, 100.0, 200.0];
 
-//   @override
-//   Widget build(BuildContext context) {
-//     // グラフのデータポイントを動的に生成
-//   final size = Size(300, 200); // CustomPaintのサイズ
-//   final points = generatePoints(10, size); // サイズを渡してポイントを生成
+  @override
+  void initState() {
+    super.initState();
+    for (int i = 0; i < 5; i++) {
+      var controller = AnimationController(vsync: this, duration: Duration(seconds: 2));
+      var animation = Tween(begin: 0.0, end: _values[i]).animate(controller)
+        ..addListener(() {
+          setState(() {});
+        });
+      _controllers.add(controller);
+      _animations.add(animation);
+      _controllers[i].forward();
+    }
+  }
 
-//     return CustomPaint(
-//       size: size,
-//       painter: LineChartPainter(points: points),
-//     );
-//   }
-// }
+  @override
+  void dispose() {
+    for (var controller in _controllers) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: Size(200, 200), // Adjust the size as needed
+      painter: BarChartPainter(_animations, _colors),
+    );
+  }
+}
+
+class BarChartPainter extends CustomPainter {
+  final List<Animation<double>> animations;
+  final List<Color> colors;
+
+  BarChartPainter(this.animations, this.colors);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (int i = 0; i < animations.length; i++) {
+      var paint = Paint()
+        ..color = colors[i]
+        ..style = PaintingStyle.fill;
+      canvas.drawRect(Rect.fromLTWH(0, i * 40.0, animations[i].value, 30), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
